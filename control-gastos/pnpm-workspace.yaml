@@ -1,0 +1,8 @@
+packages:
+  - "backend"
+  - "front"
+allowBuilds:
+  bcrypt: true
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true

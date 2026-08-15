@@ -1,0 +1,17 @@
+{
+  "name": "control-gastos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Workspace raíz del proyecto Control de Gastos (backend + frontend)",
+  "scripts": {
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:front": "pnpm --filter front start",
+    "build:backend": "pnpm --filter backend build",
+    "build:front": "pnpm --filter front build",
+    "install:all": "pnpm install"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
