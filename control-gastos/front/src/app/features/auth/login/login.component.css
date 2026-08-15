@@ -1,0 +1,339 @@
+/* ============================================================
+   Tokens locales del Login
+   Paleta: verde tinta (marca/confianza) + oro (moneda/valor)
+   Tipografía: Fraunces (display) + Inter (UI/formulario)
+   ============================================================ */
+:host {
+  --ink: #0b3b2e;
+  --ink-soft: #123f31;
+  --ink-line: rgba(250, 247, 241, 0.14);
+  --gold: #c9a227;
+  --gold-soft: #e4c766;
+  --paper: #faf7f1;
+  --paper-line: #e7e1d2;
+  --text-dark: #1b2420;
+  --text-muted: #6b7268;
+  --error: #b3261e;
+
+  display: block;
+  height: 100%;
+}
+
+* { box-sizing: border-box; }
+
+.auth-shell {
+  display: flex;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  background: var(--paper);
+}
+
+/* ---------------------------------------------------------- */
+/* Panel de marca (izquierda)                                  */
+/* ---------------------------------------------------------- */
+.brand-panel {
+  position: relative;
+  flex: 0 0 44%;
+  background: linear-gradient(165deg, var(--ink) 0%, var(--ink-soft) 100%);
+  color: var(--paper);
+  padding: 3rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.brand-panel__top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 1;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.brand-name {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+.brand-panel__body { z-index: 1; max-width: 30rem; }
+
+.brand-headline {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
+  line-height: 1.15;
+  margin: 2.5rem 0 1rem;
+  letter-spacing: -0.01em;
+}
+
+.brand-subtext {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(250, 247, 241, 0.72);
+  margin: 0 0 2.75rem;
+  max-width: 24rem;
+}
+
+/* Elemento de firma: mini gráfico de barras tipo "libro mayor" */
+.ledger-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  height: 6.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ink-line);
+  width: fit-content;
+}
+
+.ledger-chart__bar {
+  width: 1.6rem;
+  height: var(--h);
+  border-radius: 4px 4px 0 0;
+  background: rgba(228, 199, 102, 0.28);
+  transition: transform 0.25s ease;
+}
+
+.ledger-chart__bar--active {
+  background: var(--gold);
+}
+
+.ledger-caption {
+  margin: 0.9rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(250, 247, 241, 0.6);
+}
+
+.ledger-caption span {
+  color: var(--gold-soft);
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  margin-left: 0.35rem;
+}
+
+/* Textura de fondo: líneas horizontales sutiles, tipo papel de libro contable */
+.brand-panel__lines {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 38px,
+    var(--ink-line) 39px
+  );
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------------- */
+/* Panel del formulario (derecha)                               */
+/* ---------------------------------------------------------- */
+.form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.auth-card__eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.auth-card__title {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 1.9rem;
+  margin: 0 0 0.4rem;
+  color: var(--text-dark);
+}
+
+.auth-card__hint {
+  margin: 0 0 2rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Campos */
+.field { margin-bottom: 1.25rem; }
+
+.field label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+
+.field__control {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1.5px solid var(--paper-line);
+  border-radius: 10px;
+  padding: 0 0.85rem;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field__control:focus-within {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(11, 59, 46, 0.08);
+}
+
+.field--invalid .field__control {
+  border-color: var(--error);
+}
+
+.field__icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.field__control input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0.72rem 0;
+  font-size: 0.92rem;
+  font-family: 'Inter', sans-serif;
+  color: var(--text-dark);
+  background: transparent;
+}
+
+.field__toggle {
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+}
+
+.field__toggle svg { width: 18px; height: 18px; }
+
+.field__error {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.76rem;
+  color: var(--error);
+}
+
+.field__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.25rem 0 1.5rem;
+  font-size: 0.82rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.checkbox input { accent-color: var(--ink); }
+
+.link {
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 500;
+}
+.link:hover { text-decoration: underline; }
+
+.server-error {
+  display: block;
+  background: #fdecea;
+  color: var(--error);
+  border: 1px solid #f5c2bf;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.82rem;
+  margin-bottom: 1.1rem;
+}
+
+/* Botón de envío */
+.submit-btn {
+  width: 100%;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.submit-btn:hover:not(:disabled) { background: var(--ink-soft); }
+.submit-btn:active:not(:disabled) { transform: translateY(1px); }
+.submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.submit-btn__loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(250, 247, 241, 0.35);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-card__footer {
+  margin: 1.75rem 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------- */
+/* Responsive                                                   */
+/* ---------------------------------------------------------- */
+@media (max-width: 900px) {
+  .brand-panel { display: none; }
+  .form-panel { padding: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submit-btn, .ledger-chart__bar, .spinner { transition: none; animation: none; }
+}
