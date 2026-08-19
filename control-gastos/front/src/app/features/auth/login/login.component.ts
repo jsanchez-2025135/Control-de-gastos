@@ -22,6 +22,7 @@ export class LoginComponent {
   errorMessage = '';
   isLoading = false;
   showPassword = false;
+  readonly currentYear = new Date().getFullYear();
 
   constructor(
     private fb: FormBuilder,
