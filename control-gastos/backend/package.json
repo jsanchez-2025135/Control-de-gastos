@@ -5,8 +5,10 @@
   "description": "API REST - Control de Gastos",
   "main": "dist/server.js",
   "scripts": {
+    "predev": "node scripts/start-db.cjs && node scripts/init-db.cjs",
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
+    "prestart": "node scripts/start-db.cjs && node scripts/init-db.cjs",
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts"
   },
@@ -15,7 +17,8 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
@@ -23,6 +26,7 @@
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.14.11",
+    "@types/pg": "^8.11.6",
     "tsc-alias": "^1.9.1",
     "tsx": "^4.16.2",
     "typescript": "^5.5.4"

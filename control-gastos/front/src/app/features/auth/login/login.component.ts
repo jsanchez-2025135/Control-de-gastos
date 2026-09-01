@@ -7,8 +7,8 @@ import { AuthService } from '../../../core/services/auth.service';
 /**
  * Componente de Login.
  * - Reactive Forms con validaciones de correo y contraseña.
- * - Al autenticar correctamente, redirige a /dashboard (donde por ahora
- *   solo se muestra un mensaje de éxito, ya que el dashboard real aún no existe).
+ * - Al autenticar correctamente, redirige a /dashboard, la vista general
+ *   de Control de Gastos.
  */
 @Component({
   selector: 'app-login',
