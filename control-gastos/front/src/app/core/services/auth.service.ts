@@ -4,21 +4,22 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthUser } from '../models/user.model';
 import { LoginResponse } from '../models/login-response.model';
+import { SessionExpiredService } from './session-expired.service';
+import { getMsUntilExpiration } from '../utils/jwt.util';
 
 const TOKEN_KEY = 'cg_token';
 const USER_KEY = 'cg_user';
 
-/**
- * Servicio central de autenticación.
- * - Hace la petición HTTP de login.
- * - Guarda/lee el token y el usuario en localStorage.
- * - Expone helpers (isLoggedIn, getRole) para el guard y los componentes.
- */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly apiUrl = `${environment.apiUrl}/auth`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private sessionExpiredService: SessionExpiredService) {
+    const existingToken = this.getToken();
+    if (existingToken) {
+      this.scheduleExpirationFor(existingToken);
+    }
+  }
 
   login(email: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { email, password }).pipe(
@@ -31,6 +32,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    this.sessionExpiredService.clear();
   }
 
   getToken(): string | null {
@@ -53,5 +55,12 @@ export class AuthService {
   private setSession(token: string, user: AuthUser): void {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    this.scheduleExpirationFor(token);
+  }
+
+  private scheduleExpirationFor(token: string): void {
+    const msRemaining = getMsUntilExpiration(token);
+    if (msRemaining === null) return;
+    this.sessionExpiredService.scheduleExpiration(msRemaining);
   }
 }

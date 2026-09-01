@@ -11,7 +11,7 @@ export const env = {
   port: Number(process.env.PORT) || 3000,
   jwt: {
     secret: process.env.JWT_SECRET || 'dev_secret_change_me',
-    expiresIn: process.env.JWT_EXPIRES_IN || '1h',
+    expiresIn: process.env.JWT_EXPIRES_IN || '1m',
   },
   db: {
     host: process.env.DB_HOST || 'localhost',

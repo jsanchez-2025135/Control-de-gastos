@@ -1,22 +1,24 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { SessionExpiredService } from '../services/session-expired.service';
 
-/**
- * Interceptor funcional: agrega automáticamente el header
- *   Authorization: Bearer <token>
- * a toda petición HTTP saliente, si existe un token guardado.
- */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const sessionExpiredService = inject(SessionExpiredService);
   const token = authService.getToken();
 
-  if (token) {
-    const cloned = req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` },
-    });
-    return next(cloned);
-  }
+  const cloned = token
+    ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+    : req;
 
-  return next(req);
+  return next(cloned).pipe(
+    catchError((error) => {
+      if (error?.status === 401 && token) {
+        sessionExpiredService.triggerExpired();
+      }
+      return throwError(() => error);
+    })
+  );
 };
