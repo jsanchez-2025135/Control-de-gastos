@@ -1,33 +1,47 @@
 /**
- * Módulo de conexión a base de datos.
+ * Módulo de conexión a base de datos (PostgreSQL vía "pg", sin ORM).
  *
- * HOY: no hay conexión real, todo se sirve desde arreglos en memoria (mock).
- * SIGUIENTE SPRINT: aquí se instanciará el pool de PostgreSQL (pg) o el cliente
- * de un ORM (TypeORM / Prisma) SIN que el resto de la app tenga que cambiar,
- * porque los "services" nunca hablan con la base de datos directamente:
- * siempre pasan por un Repository (ver shared/interfaces + los *.repository.ts
- * que se crearán en cada módulo).
- *
- * Ejemplo de cómo quedaría con "pg" (comentado a propósito):
- *
- * import { Pool } from 'pg';
- * import { env } from './env';
- *
- * export const pool = new Pool({
- *   host: env.db.host,
- *   port: env.db.port,
- *   database: env.db.name,
- *   user: env.db.user,
- *   password: env.db.password,
- * });
- *
- * export const connectDatabase = async (): Promise<void> => {
- *   await pool.query('SELECT 1');
- *   console.log('✅ Conectado a PostgreSQL');
- * };
+ * Expone un Pool único que reutiliza toda la app. Los repositorios
+ * (ej. PostgresUserRepository) importan `pool` y ejecutan sus queries ahí.
  */
+import { Pool } from 'pg';
+import { env } from './env';
 
-export const connectDatabase = async (): Promise<void> => {
-  // Placeholder: se activa cuando conectemos PostgreSQL.
-  console.log('ℹ️  Base de datos no configurada todavía (usando datos mock en memoria).');
+export const pool = new Pool({
+  host: env.db.host,
+  port: env.db.port,
+  database: env.db.name,
+  user: env.db.user,
+  password: env.db.password,
+});
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Reintenta la conexión unas veces antes de rendirse: el "predev" recién
+ * mandó arrancar el servicio de PostgreSQL en Windows y puede tardar
+ * uno o dos segundos en aceptar conexiones.
+ */
+export const connectDatabase = async (retries = 5, delayMs = 1500): Promise<void> => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query('SELECT 1');
+        console.log('✅ Conectado a PostgreSQL');
+        return;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      const isLastAttempt = attempt === retries;
+      console.log(
+        `⏳ Intento ${attempt}/${retries} fallido al conectar a PostgreSQL${isLastAttempt ? '' : ', reintentando...'}`,
+      );
+      if (isLastAttempt) {
+        throw error;
+      }
+      await wait(delayMs);
+    }
+  }
 };
