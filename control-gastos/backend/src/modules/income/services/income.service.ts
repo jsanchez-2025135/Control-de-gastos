@@ -11,6 +11,15 @@ interface CreateIncomeDto {
   date: string;
 }
 
+type UpdateIncomeDto = Omit<CreateIncomeDto, 'userId'>;
+
+const validate = (dto: UpdateIncomeDto): void => {
+  if (!dto.title || dto.title.trim().length < 3) throw new Error('TITLE_INVALID');
+  if (!dto.amount || dto.amount <= 0) throw new Error('AMOUNT_INVALID');
+  if (dto.type !== 'Fijo' && dto.type !== 'Variable') throw new Error('TYPE_INVALID');
+  if (!dto.date) throw new Error('DATE_INVALID');
+};
+
 export interface IncomeSummary {
   incomes: Income[];
   totalIngresos: number;
@@ -39,11 +48,21 @@ export class IncomeService {
   }
 
   static async create(dto: CreateIncomeDto): Promise<Income> {
-    if (!dto.title || dto.title.trim().length < 3) throw new Error('TITLE_INVALID');
-    if (!dto.amount || dto.amount <= 0) throw new Error('AMOUNT_INVALID');
-    if (dto.type !== 'Fijo' && dto.type !== 'Variable') throw new Error('TYPE_INVALID');
-    if (!dto.date) throw new Error('DATE_INVALID');
-
+    validate(dto);
     return incomeRepository.create(dto);
+  }
+
+  // El repositorio ya filtra por user_id en el UPDATE, pero además revisamos
+  // aquí el resultado: si viene null, o el id no existe o no es del usuario.
+  static async update(id: string, userId: string, dto: UpdateIncomeDto): Promise<Income> {
+    validate(dto);
+    const updated = await incomeRepository.update(id, userId, dto);
+    if (!updated) throw new Error('INCOME_NOT_FOUND');
+    return updated;
+  }
+
+  static async remove(id: string, userId: string): Promise<void> {
+    const deleted = await incomeRepository.delete(id, userId);
+    if (!deleted) throw new Error('INCOME_NOT_FOUND');
   }
 }
