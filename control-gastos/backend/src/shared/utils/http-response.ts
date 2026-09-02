@@ -18,5 +18,8 @@ export const unauthorized = (res: Response, message = 'No autorizado') =>
 export const forbidden = (res: Response, message = 'Acceso denegado') =>
   res.status(403).json({ success: false, message });
 
+export const notFound = (res: Response, message = 'No encontrado') =>
+  res.status(404).json({ success: false, message });
+
 export const serverError = (res: Response, message = 'Error interno del servidor') =>
   res.status(500).json({ success: false, message });
