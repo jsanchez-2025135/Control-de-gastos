@@ -145,6 +145,25 @@
 .income-table__desc { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; }
 .income-table__amount { font-weight: 700; }
 .income-table__menu { text-align: center; color: var(--text-muted); cursor: pointer; }
+.income-table__actions { display: flex; align-items: center; justify-content: center; gap: 0.4rem; white-space: nowrap; }
+
+.icon-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1;
+}
+.icon-btn:hover { background: #f5f6fa; color: var(--text-dark); }
+.icon-btn--danger:hover { background: #fdecea; color: #e0524d; border-color: #f3b9b4; }
+
+.quick-actions__list-buttons { display: flex; align-items: center; gap: 0.35rem; flex-shrink: 0; }
 .income-icon { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
 .income-icon svg { width: 14px; height: 14px; }
 .income-icon--fixed { background: #e4f8f5; color: var(--teal); }

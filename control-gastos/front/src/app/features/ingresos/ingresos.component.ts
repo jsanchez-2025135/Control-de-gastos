@@ -37,6 +37,7 @@ interface SeriesPoint {
 }
 
 interface RecentIncomeView {
+  id: string;
   title: string;
   type: 'Fijo' | 'Variable';
   category: string;
@@ -210,6 +211,8 @@ export class IngresosComponent implements OnInit {
   showModal = false;
   incomeForm: FormGroup;
   isSaving = false;
+  // Si tiene valor, el modal está editando ese ingreso en vez de crear uno nuevo.
+  editingIncomeId: string | null = null;
 
   // ---------- Panel de "Acciones rápidas" tipo acordeón ----------
 activePanel: 'ingresos' | 'categorias' | 'fuentes' | null = null;
@@ -279,6 +282,7 @@ verTodosIngresos(): void {
   private applySummary(incomes: Income[], totalFixed: number, totalVariable: number): void {
     this.allIncomes = incomes;
     this.recentIncomes = incomes.map((i) => ({
+      id: i.id,
       title: i.title,
       type: i.type,
       category: i.category,
@@ -438,6 +442,7 @@ private formatAxisQ(value: number): string {
 }
 
   openModal(): void {
+    this.editingIncomeId = null;
     this.incomeForm.reset({
       title: '',
       type: 'Fijo',
@@ -449,8 +454,27 @@ private formatAxisQ(value: number): string {
     this.showModal = true;
   }
 
+  // Abre el mismo modal pero precargado con los datos del ingreso, y deja
+  // guardado el id para que submitIncome() haga un update en vez de un create.
+  openEditModal(incomeView: RecentIncomeView): void {
+    const income = this.allIncomes.find((i) => i.id === incomeView.id);
+    if (!income) return;
+
+    this.editingIncomeId = income.id;
+    this.incomeForm.reset({
+      title: income.title,
+      type: income.type,
+      category: income.category,
+      amount: income.amount,
+      method: income.method,
+      date: income.date,
+    });
+    this.showModal = true;
+  }
+
   closeModal(): void {
     this.showModal = false;
+    this.editingIncomeId = null;
   }
 
   submitIncome(): void {
@@ -461,17 +485,34 @@ private formatAxisQ(value: number): string {
 
     this.isSaving = true;
     const { title, type, category, amount, method, date } = this.incomeForm.value;
+    const payload = { title, type, category, amount: Number(amount), method, date };
 
-    this.incomeService.create({ title, type, category, amount: Number(amount), method, date }).subscribe({
+    const request$ = this.editingIncomeId
+      ? this.incomeService.update(this.editingIncomeId, payload)
+      : this.incomeService.create(payload);
+
+    request$.subscribe({
       next: () => {
         this.isSaving = false;
         this.showModal = false;
+        this.editingIncomeId = null;
         this.loadIncomes();
       },
       error: (err) => {
         console.error('Error guardando ingreso', err);
         this.isSaving = false;
       },
+    });
+  }
+
+  // Pide confirmación y elimina el ingreso; si el usuario cancela, no hace nada.
+  deleteIncome(incomeView: RecentIncomeView): void {
+    const confirmado = confirm(`¿Eliminar el ingreso "${incomeView.title}"? Esta acción no se puede deshacer.`);
+    if (!confirmado) return;
+
+    this.incomeService.delete(incomeView.id).subscribe({
+      next: () => this.loadIncomes(),
+      error: (err) => console.error('Error eliminando ingreso', err),
     });
   }
 

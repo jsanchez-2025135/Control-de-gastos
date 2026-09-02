@@ -239,7 +239,10 @@
                 <td>{{ income.date }}</td>
                 <td class="income-table__amount">Q {{ income.amount.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</td>
                 <td>{{ income.method }}</td>
-                <td class="income-table__menu">⋮</td>
+                <td class="income-table__actions">
+                  <button type="button" class="icon-btn" title="Editar" (click)="openEditModal(income)">✎</button>
+                  <button type="button" class="icon-btn icon-btn--danger" title="Eliminar" (click)="deleteIncome(income)">🗑</button>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -269,6 +272,10 @@
         <span class="quick-actions__list-label">{{ income.title }}</span>
         <span class="quick-actions__list-meta">{{ income.category }} · {{ income.date }}</span>
         <span class="quick-actions__list-amount">Q {{ income.amount.toLocaleString('es-GT', {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</span>
+        <span class="quick-actions__list-buttons">
+          <button type="button" class="icon-btn" title="Editar" (click)="openEditModal(income)">✎</button>
+          <button type="button" class="icon-btn icon-btn--danger" title="Eliminar" (click)="deleteIncome(income)">🗑</button>
+        </span>
       </li>
       <li class="quick-actions__list-empty" *ngIf="recentIncomes.length === 0">Aún no tienes ingresos registrados.</li>
     </ul>
@@ -316,7 +323,7 @@
   <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal__header">
-        <h2>Registrar nuevo ingreso</h2>
+        <h2>{{ editingIncomeId ? 'Editar ingreso' : 'Registrar nuevo ingreso' }}</h2>
         <button class="modal__close" (click)="closeModal()">✕</button>
       </div>
 
@@ -367,7 +374,7 @@
 
         <div class="modal__actions">
           <button type="button" class="btn-secondary" (click)="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-primary" [disabled]="isSaving">{{ isSaving ? 'Guardando...' : 'Guardar ingreso' }}</button>
+          <button type="submit" class="btn-primary" [disabled]="isSaving">{{ isSaving ? 'Guardando...' : (editingIncomeId ? 'Guardar cambios' : 'Guardar ingreso') }}</button>
         </div>
       </form>
     </div>
