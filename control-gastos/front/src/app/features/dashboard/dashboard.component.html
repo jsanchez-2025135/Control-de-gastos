@@ -9,7 +9,7 @@
 
     <nav class="nav">
       <div class="nav__group">
-        <a *ngFor="let item of navItems" class="nav__item" [class.nav__item--active]="item.active">
+        <a *ngFor="let item of navItems" class="nav__item" [routerLink]="item.route ?? null" [class.nav__item--active]="item.active">
           <span class="nav__icon" [ngSwitch]="item.icon" [class.nav__icon--in]="item.icon === 'in'" [class.nav__icon--out]="item.icon === 'out'" [class.nav__icon--coffee]="item.icon === 'coffee'">
             <svg *ngSwitchCase="'grid'" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
             <svg *ngSwitchCase="'in'" viewBox="0 0 24 24" fill="none"><path d="M12 6v10M8 12l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
