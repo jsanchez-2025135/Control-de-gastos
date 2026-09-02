@@ -28,3 +28,5 @@ export interface CreateIncomePayload {
   method: string;
   date: string;
 }
+
+export type UpdateIncomePayload = CreateIncomePayload;

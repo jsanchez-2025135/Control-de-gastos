@@ -480,5 +480,3 @@ private formatAxisQ(value: number): string {
     this.router.navigate(['/login']);
   }
 }
-
-//formatQ

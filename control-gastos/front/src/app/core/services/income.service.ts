@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateIncomePayload, Income, IncomeSummary } from '../models/income.model';
+import { CreateIncomePayload, Income, IncomeSummary, UpdateIncomePayload } from '../models/income.model';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -26,5 +26,13 @@ export class IncomeService {
 
   create(payload: CreateIncomePayload): Observable<ApiResponse<Income>> {
     return this.http.post<ApiResponse<Income>>(this.apiUrl, payload);
+  }
+
+  update(id: string, payload: UpdateIncomePayload): Observable<ApiResponse<Income>> {
+    return this.http.put<ApiResponse<Income>>(`${this.apiUrl}/${id}`, payload);
+  }
+
+  delete(id: string): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}`);
   }
 }
