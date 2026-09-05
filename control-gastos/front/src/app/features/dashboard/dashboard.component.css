@@ -340,3 +340,5 @@
   .brand__name { display: none; }
   .kpis { grid-template-columns: 1fr; }
 }
+
+.axis-label { font-size: 10px; fill: #9aa0af; font-family: 'Inter', sans-serif; }

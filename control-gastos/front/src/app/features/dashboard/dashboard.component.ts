@@ -1,7 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { IncomeService } from '../../core/services/income.service';
+import { Income } from '../../core/models/income.model';
 
 interface KpiCard {
   icon: 'in' | 'out' | 'coffee' | 'wallet';
@@ -46,30 +48,29 @@ interface NavItem {
   icon: 'grid' | 'in' | 'out' | 'coffee' | 'list' | 'chart-pie' | 'chart-bar' | 'bell' | 'user' | 'gear' | 'logout';
   label: string;
   active?: boolean;
+  route?: string;
 }
 
 /**
  * Vista general del Dashboard.
- *
- * HOY: los datos (KPIs, series, transacciones) son mock, hardcodeados aquí
- * mismo, para poder maquetar la vista sin depender del módulo de gastos.
- * MAÑANA: se reemplazan por un ExpenseService que consuma /api/expenses/*,
- * siguiendo el mismo patrón de capas ya usado en auth (Service -> HttpClient).
- * El template no debería necesitar cambios, solo de dónde vienen los arrays.
+ * Consume IncomeService para que el KPI de Ingresos, la gráfica mensual y
+ * las transacciones recientes queden sincronizados con la base de datos.
+ * La gráfica mensual muestra los últimos 6 meses TERMINANDO en el mes
+ * actual (no meses fijos), para que el mes en curso siempre aparezca.
  */
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   user: ReturnType<AuthService['getUser']>;
 
   navItems: NavItem[] = [
-    { icon: 'grid', label: 'Vista General', active: true },
-    { icon: 'in', label: 'Ingresos' },
+    { icon: 'grid', label: 'Vista General', active: true, route: '/dashboard' },
+    { icon: 'in', label: 'Ingresos', route: '/ingresos' },
     { icon: 'out', label: 'Egresos' },
     { icon: 'coffee', label: 'Pequeños Consumos' },
   ];
@@ -96,17 +97,10 @@ export class DashboardComponent {
     { icon: 'wallet', label: 'Saldo Disponible', amount: 'Q 0.00', note: 'Este mes', tone: 'teal' },
   ];
 
-  series: SeriesPoint[] = [
-    { month: 'Ene', ingresos: 0, egresos: 0, consumos: 0 },
-    { month: 'Feb', ingresos: 0, egresos: 0, consumos: 0 },
-    { month: 'Mar', ingresos: 0, egresos: 0, consumos: 0 },
-    { month: 'Abr', ingresos: 0, egresos: 0, consumos: 0 },
-    { month: 'May', ingresos: 0, egresos: 0, consumos: 0 },
-    { month: 'Jun', ingresos: 0, egresos: 0, consumos: 0 },
-  ];
+  // Se inicializa con los últimos 6 meses reales (terminando en el mes
+  // actual), no con meses fijos "Ene..Jun".
+  series: SeriesPoint[] = this.buildMonthlySeries([]);
 
-  // Categorías por defecto: se muestran siempre (en 0) para que la
-  // dona y su leyenda mantengan la misma forma que cuando ya hay datos.
   expenseDistribution: ExpenseSlice[] = [
     { label: 'Alimentación', amount: 'Q 0.00', percent: 0, color: '#12B5A0' },
     { label: 'Transporte', amount: 'Q 0.00', percent: 0, color: '#5B4FE8' },
@@ -119,11 +113,11 @@ export class DashboardComponent {
 
   transactions: Transaction[] = [];
 
-  // Construye el "d" del path SVG de las 3 líneas del gráfico mensual,
-  // normalizando cada valor a un eje de 0 a 10,000 sobre un lienzo fijo.
   private readonly chartWidth = 640;
   private readonly chartHeight = 220;
   private readonly maxValue = 10000;
+
+  private totalEgresosValue = 0;
 
   get chartPoints() {
     const stepX = this.chartWidth / (this.series.length - 1);
@@ -151,9 +145,6 @@ export class DashboardComponent {
     };
   }
 
-  // Construye el conic-gradient del donut a partir de los porcentajes.
-  // Si no hay egresos registrados todavía (todo en 0%), se muestra un
-  // anillo gris neutro en vez de un gradiente con paradas vacías.
   get donutGradient(): string {
     const total = this.expenseDistribution.reduce((sum, slice) => sum + slice.percent, 0);
     if (this.expenseDistribution.length === 0 || total === 0) {
@@ -169,11 +160,91 @@ export class DashboardComponent {
   }
 
   get totalEgresos(): string {
-    return 'Q 0.00';
+    return this.formatQ(this.totalEgresosValue);
   }
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private incomeService: IncomeService,
+  ) {
     this.user = this.authService.getUser();
+  }
+
+  ngOnInit(): void {
+    this.loadDashboard();
+  }
+
+  private loadDashboard(): void {
+    this.incomeService.getSummary().subscribe({
+      next: (res) => {
+        this.applyIncomeData(res.data.incomes, res.data.totalFixed, res.data.totalVariable);
+      },
+      error: (err) => {
+        console.error('Error cargando ingresos en el dashboard', err);
+      },
+    });
+  }
+
+  private applyIncomeData(incomes: Income[], totalFixed: number, totalVariable: number): void {
+    const totalIngresos = totalFixed + totalVariable;
+
+    this.kpis = this.kpis.map((kpi, i) => {
+      if (i === 0) return { ...kpi, amount: this.formatQ(totalIngresos) };
+      if (i === 3) return { ...kpi, amount: this.formatQ(totalIngresos - this.totalEgresosValue) };
+      return kpi;
+    });
+
+    this.series = this.buildMonthlySeries(incomes);
+
+    const sorted = [...incomes].sort((a, b) => b.date.localeCompare(a.date));
+    this.transactions = sorted.slice(0, 5).map((inc) => ({
+      icon: 'in',
+      title: inc.title,
+      subtitle: inc.category,
+      amount: '+' + this.formatQ(inc.amount),
+      positive: true,
+      date: this.formatDate(inc.date),
+    }));
+  }
+
+  // Construye los últimos 6 meses TERMINANDO en el mes actual (no meses
+  // fijos), y suma los ingresos que caen en cada uno.
+  private buildMonthlySeries(incomes: Income[]): SeriesPoint[] {
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const months: { label: string; monthIndex: number; year: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentYear, currentMonth - i, 1);
+      months.push({ label: meses[d.getMonth()], monthIndex: d.getMonth(), year: d.getFullYear() });
+    }
+
+    const totalsByKey = new Map<string, number>();
+    incomes.forEach((inc) => {
+      const [y, m] = inc.date.split('-').map(Number);
+      const key = `${y}-${m - 1}`;
+      totalsByKey.set(key, (totalsByKey.get(key) ?? 0) + inc.amount);
+    });
+
+    return months.map((mo) => ({
+      month: mo.label,
+      ingresos: totalsByKey.get(`${mo.year}-${mo.monthIndex}`) ?? 0,
+      egresos: 0,
+      consumos: 0,
+    }));
+  }
+
+  private formatQ(value: number): string {
+    return 'Q ' + value.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  private formatDate(iso: string): string {
+    const [y, m, d] = iso.split('-');
+    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return `${Number(d)} ${meses[Number(m) - 1]} ${y}`;
   }
 
   logout(): void {

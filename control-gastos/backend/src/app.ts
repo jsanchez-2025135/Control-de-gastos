@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import authRoutes from './modules/auth/routes/auth.routes';
+import incomeRoutes from './modules/income/routes/income.routes';
 
 /**
  * Configuración de la aplicación Express: middlewares globales y montaje
@@ -19,5 +20,6 @@ app.get('/api/health', (_req, res) => {
 
 // Rutas por módulo (por ahora solo Auth; "expense" se agregará en otra entrega)
 app.use('/api/auth', authRoutes);
+app.use('/api/incomes', incomeRoutes); // ← nuevo
 
 export default app;
